@@ -24,12 +24,20 @@
             background-color: #89d0e6;
             min-height: 110vh;
         }
+        .card-header{
+            background-color: white;
+            margin: 30px 280px;
+            text-align: center;
+        }
         .card{
             border-radius: 20px;
         }
         .card h5{
             text-align: center;
         }
+        /*.text-right a{
+            margin-top: 10px;
+        }*/
     </style>
 </head>
 <?php
@@ -38,7 +46,7 @@ spl_autoload_register(function ($className) {
 });
 ?>
 
-<?php $penjualan = new Penjualan(); ?>
+<?php $stok = new Stok(); ?>
 
 
 <body>
@@ -48,19 +56,21 @@ spl_autoload_register(function ($className) {
         session_start();
         if (isset($_POST['submit'])) {
             $nama = $_POST['nama'];
-            $price = $_POST['price'];
-            $amount  = $_POST['amount'];
-            $tanggal  = $_POST['tanggal'];
-            $total  = $_POST['total'];
+            $jumlah_stok = $_POST['jumlah_stok'];
+            $harga_beli = $_POST['harga_beli'];
+            $laba = $_POST['laba'];
+            $tanggal = $_POST['tanggal'];
+            $harga_jual  = $_POST['harga_jual'];
 
-            $penjualan->id = uniqid('trans_');
-            $penjualan->nama_barang = $nama;
-            $penjualan->harga_satuan = $price;
-            $penjualan->jumlah = $amount;
-            $penjualan->tanggal_beli = $tanggal;
-            $penjualan->total = $penjualan->countTotal();
+            $stok->id = uniqid('trans_');
+            $stok->nama_obat = $nama;
+            $stok->jumlah_stok = $jumlah_stok;
+            $stok->harga_beli = $harga_beli;
+            $stok->laba = $laba;
+            $stok->tanggal = $tanggal;
+            $stok->harga_jual = $stok->countHargaJual();
 
-            if ($penjualan->insert()) {
+            if ($stok->insert()) {
                 $_SESSION['dataInput'] = 'success';
 
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -85,19 +95,21 @@ spl_autoload_register(function ($className) {
         if (isset($_POST['update'])) {
             $id = $_POST['id'];
             $nama = $_POST['updt_nama'];
-            $price = $_POST['updt_price'];
-            $amount  = $_POST['updt_amount'];
-            $tanggal  = $_POST['updt_tanggal'];
-            $total  = $_POST['updt_total'];
+            $jumlah_stok = $_POST['updt_jumlah_stok'];
+            $harga_beli = $_POST['updt_harga_beli'];
+            $laba = $_POST['updt_laba'];
+            $tanggal = $_POST['updt_tanggal'];
+            $harga_jual  = $_POST['updt_harga_jual'];
 
-            // $penjualan->$id = uniqid('trans_');
-            $penjualan->nama_barang = $nama;
-            $penjualan->harga_satuan = $price;
-            $penjualan->jumlah = $amount;
-            $penjualan->tanggal_beli = $tanggal;
-            $penjualan->total = $penjualan->countTotal();
+            // $stok->$id = uniqid('trans_');
+            $stok->nama_obat = $nama;
+            $stok->jumlah_stok = $jumlah_stok;
+            $stok->harga_beli = $harga_beli;
+            $stok->laba = $laba;
+            $stok->tanggal = $tanggal;
+            $stok->harga_jual = $stok->countHargaJual();
 
-            if ($penjualan->update($id)) {
+            if ($stok->update($id)) {
                 $_SESSION['dataUpdate'] = 'success';
 
                 header('Location: ' . $_SERVER['PHP_SELF']);
@@ -121,7 +133,7 @@ spl_autoload_register(function ($className) {
         if (isset($_GET['action']) && $_GET['action'] == 'delete') {
             $id = (int)$_GET['id'];
 
-            if ($penjualan->delete($id)) {
+            if ($stok->delete($id)) {
                 echo "<span class='delete'> Data deleted succesfully...</span>";
                 $_SESSION['dataDelete'] = 'success';
 
@@ -144,12 +156,12 @@ spl_autoload_register(function ($className) {
         }
 
         ?>
+        <div class="card-header">
+            <h2 class="card-title">Data Obat di Apotek XYZ</h2>
+        </div>
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Data Obat di Apotek XYZ</h5>
-            </div>
             <div class="card-body">
-                <h5 class="card-title">Tabel Penjualan Obat</h5>
+                <h5 class="card-title">Tabel Laba Stok Obat</h5>
                 <div class="row">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" id="insert-data-btn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#InsertFormModal" style="margin-bottom:10px;">
@@ -160,29 +172,31 @@ spl_autoload_register(function ($className) {
                 <table class="table table-light table-striped table-hover">
                     <thead>
                         <tr class="table-dark">
-                            <th scope="col">Kode penjualan</th>
-                            <th scope="col">Nama barang</th>
-                            <th scope="col">Harga satuan</th>
-                            <th scope="col">Jumlah</th>
-                            <th scope="col">Tanggal beli</th>
-                            <th scope="col">Total</th>
+                            <th scope="col">Id Barang</th>
+                            <th scope="col">Nama Obat</th>
+                            <th scope="col">Jumlah Stok</th>
+                            <th scope="col">Harga Satuan</th>
+                            <th scope="col">Laba (%)</th>
+                            <th scope="col">Tanggal</th>
+                            <th scope="col">Harga Jual</th>
                             <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
                         $i = 0;
-                        if (is_array($penjualan->readAll()) || is_object($penjualan->readAll())) {
-                            foreach ($penjualan->readAll() as $value) {
+                        if (is_array($stok->readAll()) || is_object($stok->readAll())) {
+                            foreach ($stok->readAll() as $value) {
                                 $i++;
                         ?>
                                 <tr>
                                     <th scope="row"><?php echo $value['id']  ?></th>
-                                    <td><?php echo $value['nama_barang']  ?></td>
-                                    <td><?php echo "Rp" . number_format($value['harga_satuan'], 2, ',', '.');  ?></td>
-                                    <td><?php echo number_format($value['jumlah'], 0, ',', '.');  ?></td>
-                                    <td><?php echo $value['tanggal_beli'];  ?></td>
-                                    <td><?php echo "Rp" . number_format($value['total'], 2, ',', '.');  ?></td>
+                                    <td><?php echo $value['nama_obat']  ?></td>
+                                    <td><?php echo number_format($value['jumlah_stok'], 0, ',', '.');  ?></td>
+                                    <td><?php echo "Rp" . number_format($value['harga_beli'], 2, ',', '.');  ?></td>
+                                    <td><?php echo number_format($value['laba'], 0, ',', '.');  ?></td>
+                                    <td><?php echo $value['tanggal'];  ?></td>
+                                    <td><?php echo "Rp" . number_format($value['harga_jual'], 2, ',', '.');  ?></td>
                                     <td class="text-right">
                                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#UpdateFormModal" onclick="<?php echo "fillUpdateForm(" . $value['id'] . ")" ?>">Edit</button>
                                         <a id="del-btn-<?php echo $value['id']; ?>" class=" btn btn-danger" href="<?php echo $_SERVER['PHP_SELF'] ?>?action=delete&id=<?php echo $value['id']; ?>">Delete</a>
@@ -212,39 +226,43 @@ spl_autoload_register(function ($className) {
         <div class="modal-dialog modal-lg">
             <div class="modal-content ">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Tambah data penjualan obat di Apotek XYZ</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Tambah data stok obat Apotek XYZ</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="" method="post">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="nama-barang" class="form-label">Nama barang </label>
-                            <input type="text" name="nama" class="form-control" maxlength="255" id="nama-barang" required>
+                    <div class="mb-3">
+                            <label for="nama-obat" class="form-label">Nama Obat </label>
+                            <input type="text" name="nama" class="form-control" maxlength="255" id="nama-obat" required>
                         </div>
                         <div class="mb-3">
-                            <label for="price" class="form-label">Harga satuan</label>
+                            <label for="jumlah_stok" class="form-label">Jumlah Stok</label>
+                            <input type="number" name="jumlah_stok" min="0" max="2147483647" class="fieldInsertInput form-control" id="jumlah_stok" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="harga_beli" class="form-label">Harga Beli</label>
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">Rp</span>
                                 </div>
-                                <input id="price" required type="number" min="0" max="2147483647" name="price" class="fieldInsertInput form-control rupiah" aria-label="Amount (to the nearest dollar)">
+                                <input id="harga_beli" required type="number" min="0" max="2147483647" name="harga_beli" class="fieldInsertInput form-control rupiah" aria-label="Amount (to the nearest dollar)">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="amount" class="form-label">Jumlah</label>
-                            <input type="number" name="amount" min="0" max="2147483647" class="fieldInsertInput form-control" id="amount" required>
+                            <label for="laba" class="form-label">Laba (%)</label>
+                            <input type="number" name="laba" min="0" max="2147483647" class="fieldInsertInput form-control" id="laba" required>
                         </div>
                         <div class="mb-3">
-                            <label for="date" class="form-label">Tanggal beli</label>
-                            <input type="date" name="tanggal" class="form-control" id="date" required>
+                            <label for="tanggal" class="form-label">Tanggal</label>
+                            <input type="date" name="tanggal" class="form-control" id="tanggal" required>
                         </div>
                         <div class="mb-3">
-                            <label for="total" class="form-label">Total</label>
+                            <label for="harga_jual" class="form-label">Harga Jual</label>
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">Rp</span>
                                 </div>
-                                <input id="total" type="number" min="0" name="total" class=" form-control rupiah" aria-label="Amount (to the nearest dollar)" readonly>
+                                <input id="harga_jual" type="number" min="0" name="harga_jual" class=" form-control rupiah" aria-label="Amount (to the nearest dollar)" readonly>
                             </div>
                         </div>
                     </div>
@@ -264,7 +282,7 @@ spl_autoload_register(function ($className) {
         <div class="modal-dialog modal-lg">
             <div class="modal-content ">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit data transaksi Toserba xyz</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Edit data stok obat Apotek XYZ</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="" method="post">
@@ -272,34 +290,37 @@ spl_autoload_register(function ($className) {
 
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="Text1" class="form-label">Nama barang </label>
+                            <label for="Text1" class="form-label">Nama Obat </label>
                             <input type="text" name="updt_nama" maxlength="255" class="form-control" id="updt_nama" required>
                         </div>
                         <div class="mb-3">
-                            <label for="price" class="form-label">Harga satuan</label>
+                            <label for="updt_jumlah_stok" class="form-label">Jumlah Stok</label>
+                            <input type="number" name="updt_jumlah_stok" min="0" max="2147483647" class="fieldUpdateInput form-control" id="updt_jumlah_stok" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="updt-harga_beli" class="form-label">Harga Beli</label>
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">Rp</span>
                                 </div>
-                                <input required id="updt_price" type="number" min="0" max="2147483647" name="updt_price" class="fieldUpdateInput form-control rupiah" aria-label="Amount (to the nearest dollar)">
+                                <input required id="updt_harga_beli" type="number" min="0" max="2147483647" name="updt_harga_beli" class="fieldUpdateInput form-control rupiah" aria-label="Amount (to the nearest dollar)">
                             </div>
                         </div>
-
                         <div class="mb-3">
-                            <label for="Text1" class="form-label">Jumlah</label>
-                            <input type="number" name="updt_amount" min="0" max="2147483647" class="fieldUpdateInput form-control" id="updt_amount" required>
+                            <label for="updt_laba" class="form-label">Laba (%)</label>
+                            <input type="number" name="updt_laba" min="0" max="2147483647" class="fieldUpdateInput form-control" id="updt_laba" required>
                         </div>
                         <div class="mb-3">
-                            <label for="Text1" class="form-label">Tanggal beli</label>
+                            <label for="updt_tanggal" class="form-label">Tanggal</label>
                             <input type="date" name="updt_tanggal" class="form-control" id="updt_tanggal" required>
                         </div>
                         <div class="mb-3">
-                            <label for="price" class="form-label">Total</label>
+                            <label for="updt_harga_jual" class="form-label">Harga Jual</label>
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">Rp</span>
                                 </div>
-                                <input readonly id="updt_total" type="number" min="0" name="updt_total" class="form-control rupiah" aria-label="Amount (to the nearest dollar)">
+                                <input readonly id="updt_harga_jual" type="number" min="0" name="updt_harga_jual" class="form-control rupiah" aria-label="Amount (to the nearest dollar)">
                             </div>
                         </div>
                     </div>
@@ -336,46 +357,46 @@ spl_autoload_register(function ($className) {
         function fillUpdateForm(id) {
             ajax_get("./ajax.php?id=" + id, function(data) {
                 document.getElementById("updt_id").value = data["id"];
-                document.getElementById("updt_nama").value = data["nama_barang"];
-                document.getElementById("updt_price").value = data["harga_satuan"];
-                document.getElementById("updt_amount").value = data["jumlah"];
-                document.getElementById("updt_tanggal").value = data["tanggal_beli"];
-                document.getElementById("updt_total").value = data["total"];
+                document.getElementById("updt_nama").value = data["nama_obat"];
+                document.getElementById("updt_jumlah_stok").value = data["jumlah_stok"];
+                document.getElementById("updt_harga_beli").value = data["harga_beli"];
+                document.getElementById("updt_laba").value = data["laba"];
+                document.getElementById("updt_tanggal").value = data["tanggal"];
+                document.getElementById("updt_harga_jual").value = data["harga_jual"];
             });
         }
 
-
-
-        const fixedInput = document.querySelector('#total');
-        let input1 = parseInt(document.querySelector('#price').value);
-        let input2 = parseInt(document.querySelector('#amount').value);
+        const fixedInput = document.querySelector('#harga_jual');
+        let input1 = parseInt(document.querySelector('#harga_beli').value);
+        let input2 = parseInt(document.querySelector('#laba').value);
         fixedInput.value = 0;
         document.addEventListener("DOMContentLoaded", event => {
 
             document.querySelectorAll('.fieldInsertInput').forEach(item => {
                 item.addEventListener('change', (event) => {
-                    input1 = parseInt(document.querySelector('#price').value);
-                    input2 = parseInt(document.querySelector('#amount').value);
+                    input1 = parseInt(document.querySelector('#harga_beli').value);
+                    input2 = parseInt(document.querySelector('#laba').value);
 
-                    fixedInput.value = input1 * input2;
+                    fixedInput.value = input1 * input2 / 100 + input1;
                     console.log(fixedInput.value);
 
                 })
             })
         })
+        
 
-        const fixedInputUpdt = document.querySelector('#updt_total');
-        let input3 = parseInt(document.querySelector('#updt_price').value);
-        let input4 = parseInt(document.querySelector('#updt_amount').value);
+        const fixedInputUpdt = document.querySelector('#updt_harga_jual');
+        let input3 = parseInt(document.querySelector('#updt_harga_beli').value);
+        let input4 = parseInt(document.querySelector('#updt_laba').value);
         fixedInputUpdt.value = 0;
         document.addEventListener("DOMContentLoaded", event => {
 
             document.querySelectorAll('.fieldUpdateInput').forEach(item => {
                 item.addEventListener('change', (event) => {
-                    input3 = parseInt(document.querySelector('#updt_price').value);
-                    input4 = parseInt(document.querySelector('#updt_amount').value);
+                    input3 = parseInt(document.querySelector('#updt_harga_beli').value);
+                    input4 = parseInt(document.querySelector('#updt_laba').value);
 
-                    fixedInputUpdt.value = input3 * input4;
+                    fixedInputUpdt.value = input3 * input4 / 100 + input3;
                     console.log(fixedInputUpdt.value);
 
                 })

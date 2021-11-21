@@ -1,7 +1,7 @@
 
 <?php
 
-require_once('./classes/Database.php');
+require_once('./classes/database.php');
 
 class DatabaseTest extends \PHPUnit\Framework\TestCase
 {
